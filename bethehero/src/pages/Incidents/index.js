@@ -1,17 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { View, FlatList, Image, Text, TouchableOpacity } from 'react-native';
+
+import api from '../../services/api';
 
 import logoImg from '../../assets/logo.png';
 import styles from './styles';
 
 export default function Incidents() {
+    const [incidents, setIncidents] = useState([]);
     const navigation = useNavigation();
 
     function navigateToDetail() {
         navigation.navigate('Detail');
     }
+
+    async function loadincidents() {
+        const resposne = await api.get('incidents');
+
+        setIncidents(resposne.data);
+    }
+
+
+    useEffect(() => {
+        loadincidents();
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -28,19 +42,23 @@ export default function Incidents() {
 
             <FlatList
                 style={styles.incidents}
-                data={[1, 2, 3, 4, 5]}
-                keyExtractor={incident => String(incident)}
+                data={incidents}
+                keyExtractor={incident => String(incident.id)}
                 showsVerticalScrollIndicator={false}
-                renderItem={() => (
+                renderItem={({ item: incident }) => (
                     <View style={styles.incident}>
                         <Text style={styles.incidentPropoerty}>ONG:</Text>
-                        <Text style={styles.incidentValue}>APAD</Text>
+                        <Text style={styles.incidentValue}>{incident.name}</Text>
 
                         <Text style={styles.incidentPropoerty}>CASO:</Text>
-                        <Text style={styles.incidentValue}>Cadelinha atropelada</Text>
+                        <Text style={styles.incidentValue}>{incident.title}</Text>
 
                         <Text style={styles.incidentPropoerty}>VALOR:</Text>
-                        <Text style={styles.incidentValue}>R$ 120,00</Text>
+                        <Text style={styles.incidentValue}>{
+                            Intl.NumberFormat('pt-BR', {
+                                style: 'currency',
+                                currency: 'BRL'
+                            }).format(incident.value)}</Text>
 
                         <TouchableOpacity
                             style={styles.detailsButton}
